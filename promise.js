@@ -1,5 +1,5 @@
 function Promise(fn) {
-  this.state = "pending";
+  this.state = 'pending';
   this.value = null;
   this.reason = null;
   this.onFulfilledCallbacks = [];
@@ -8,8 +8,8 @@ function Promise(fn) {
   let that = this;
 
   function resolve(value) {
-    if (that.state != "pending") return;
-    that.state = "fulfilled";
+    if (that.state != 'pending') return;
+    that.state = 'fulfilled';
     that.value = value;
     that.onFulfilledCallbacks.forEach(fn => {
       fn();
@@ -17,15 +17,15 @@ function Promise(fn) {
   }
 
   function reject(reason) {
-    if (that.state != "pending") return;
-    that.state = "rejected";
+    if (that.state != 'pending') return;
+    that.state = 'rejected';
     that.reason = reason;
 
     that.onRejectedCallbacks.forEach(fn => {
       fn();
     });
   }
- 
+
   try {
     fn(resolve, reject);
   } catch (e) {
@@ -33,30 +33,33 @@ function Promise(fn) {
   }
 }
 
-
 function resolvePromise(promise, x, resolve, reject) {
-  if (promise === x) return reject(new TypeError("循环引用"));
+  if (promise === x) return reject(new TypeError('循环引用'));
   let called;
-  
+
   // x 是个函数或者对象, 并且 null , String , function , Object,
-  if (typeof x === "function" || typeof x === "object" && x !== null) {
+  if (typeof x === 'function' || (typeof x === 'object' && x !== null)) {
     try {
       let then = x.then;
       if (typeof then === 'function') {
-        then.call(x, function(y) {
-          if(called) return;
-          called = true;
-          resolvePromise(promise, y, resolve, reject);
-        },function(r) {
-          if(called) return;
-          called = true;
-          reject(r);
-        });
+        then.call(
+          x,
+          function(y) {
+            if (called) return;
+            called = true;
+            resolvePromise(promise, y, resolve, reject);
+          },
+          function(r) {
+            if (called) return;
+            called = true;
+            reject(r);
+          }
+        );
       } else {
         resolve(x);
       }
     } catch (e) {
-      if(called) return;
+      if (called) return;
       called = true;
       reject(e);
     }
@@ -68,15 +71,21 @@ function resolvePromise(promise, x, resolve, reject) {
 Promise.prototype.then = function(onFulfilledFn, onRejectedFn) {
   let that = this;
 
-  onFulfilledFn = typeof onFulfilledFn === "function" ? onFulfilledFn : function(value) {
-    return value;
-  };
-  onRejectedFn = typeof onRejectedFn === "function" ? onRejectedFn : function(value) {
-    throw value;
-  };
+  onFulfilledFn =
+    typeof onFulfilledFn === 'function'
+      ? onFulfilledFn
+      : function(value) {
+          return value;
+        };
+  onRejectedFn =
+    typeof onRejectedFn === 'function'
+      ? onRejectedFn
+      : function(value) {
+          throw value;
+        };
 
   let p2 = new Promise(function(resolve, reject) {
-    if (that.state == "pending") {
+    if (that.state == 'pending') {
       that.onFulfilledCallbacks.push(function() {
         setTimeout(() => {
           try {
@@ -99,7 +108,7 @@ Promise.prototype.then = function(onFulfilledFn, onRejectedFn) {
       });
     }
 
-    if (that.state == "fulfilled") {
+    if (that.state == 'fulfilled') {
       setTimeout(() => {
         try {
           let value = onFulfilledFn(that.value);
@@ -110,7 +119,7 @@ Promise.prototype.then = function(onFulfilledFn, onRejectedFn) {
       }, 0);
     }
 
-    if (that.state == "rejected") {
+    if (that.state == 'rejected') {
       setTimeout(() => {
         try {
           let value = onRejectedFn(that.reason);
@@ -126,32 +135,32 @@ Promise.prototype.then = function(onFulfilledFn, onRejectedFn) {
 };
 
 /**
- * catch, 捕捉上一级Promise throw的Error, 
+ * catch, 捕捉上一级Promise throw的Error,
  */
-Promise.prototype.catch = function(fn){
+Promise.prototype.catch = function(fn) {
   let that = this;
   return that.then(null, fn);
 };
 
 // 类上的方法
-Promise.resolve = function (value) {
-  return new Promise(function (resolve, reject) {
+Promise.resolve = function(value) {
+  return new Promise(function(resolve, reject) {
     resolve(value);
   });
-}
+};
 
-Promise.reject = function (value) {
-  return new Promise(function (resolve, reject) {
+Promise.reject = function(value) {
+  return new Promise(function(resolve, reject) {
     reject(value);
   });
-}
-Promise.deferred = Promise.defer = function(value){
+};
+Promise.deferred = function(value) {
   let ret = {};
-  ret.promise = new Promise(function(resolve, reject){
+  ret.promise = new Promise(function(resolve, reject) {
     ret.resolve = resolve;
     ret.reject = reject;
   });
   return ret;
-}
+};
 
 module.exports = Promise;

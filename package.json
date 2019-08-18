@@ -1,0 +1,9 @@
+{
+  "name": "promise-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:sevenCon/promise-demo.git",
+  "author": "quanlincong <1185575326@qq.com>",
+  "license": "MIT",
+  "dependencies": {}
+}
